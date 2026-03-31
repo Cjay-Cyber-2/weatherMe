@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import CloudIcon from "@/components/CloudIcon";
+import { LOCATION_OPTIONS } from "@/lib/locationOptions";
 import { WEATHER_STORAGE_KEY } from "@/store";
 import {
   fetchWeather,
@@ -13,33 +14,11 @@ import {
   resetWeatherState,
 } from "@/store/weatherSlice";
 
-const CITIES = [
-  "London",
-  "New York",
-  "Tokyo",
-  "Paris",
-  "Berlin",
-  "Sydney",
-  "Mumbai",
-  "Lagos",
-  "Los Angeles",
-  "Toronto",
-  "Dubai",
-  "Singapore",
-  "Rome",
-  "Cape Town",
-  "Buenos Aires",
-  "Seoul",
-  "Mexico City",
-  "Istanbul",
-  "Rio de Janeiro",
-];
-
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const dispatch = useDispatch();
-  const [selectedCity, setSelectedCity] = useState(CITIES[0]);
+  const [selectedCity, setSelectedCity] = useState(LOCATION_OPTIONS[0].query);
   const { currentWeather, loading, error } = useSelector((state) => state.weather);
 
   useEffect(() => {
@@ -93,10 +72,8 @@ export default function Home() {
               color: "var(--primary-color)",
               display: "flex",
               alignItems: "center",
-              gap: "10px",
             }}
           >
-            <CloudIcon size={58} alt="Animated cloud weather icon" />
             Check The Weather
           </h2>
           <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
@@ -142,9 +119,9 @@ export default function Home() {
                 value={selectedCity}
                 onChange={(e) => setSelectedCity(e.target.value)}
               >
-                {CITIES.map((city) => (
-                  <option key={city} value={city}>
-                    {city}
+                {LOCATION_OPTIONS.map((location) => (
+                  <option key={location.query} value={location.query}>
+                    {location.label}
                   </option>
                 ))}
               </select>
@@ -169,13 +146,6 @@ export default function Home() {
                 border: "1px solid var(--border-color)",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
-                <CloudIcon
-                  size={96}
-                  alt={`${currentWeather.name} weather animation`}
-                  className="result-icon"
-                />
-              </div>
               <h3 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
                 {currentWeather.name}
               </h3>
