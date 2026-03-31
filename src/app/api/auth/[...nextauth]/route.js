@@ -6,13 +6,13 @@ const authOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "admin" },
+        username: { label: "Username", type: "text", placeholder: "user" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
         // Initialize mock DB if it doesn't exist yet on first boot
         if (!global.mockUsersDB) {
-          global.mockUsersDB = [{ username: "admin", password: "password" }];
+          global.mockUsersDB = [{ username: "user", password: "password" }];
         }
 
         // Validate credentials against our in-memory "database"
