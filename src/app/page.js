@@ -7,7 +7,12 @@ import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchWeather, clearError } from "@/store/weatherSlice";
 
-const CITIES = ["London", "New York", "Tokyo", "Paris", "Berlin", "Sydney", "Mumbai", "Lagos"];
+const CITIES = [
+  "London", "New York", "Tokyo", "Paris", "Berlin", "Sydney", 
+  "Mumbai", "Lagos", "Los Angeles", "Toronto", "Dubai", 
+  "Singapore", "Rome", "Cape Town", "Buenos Aires", "Seoul", 
+  "Mexico City", "Istanbul", "Rio de Janeiro"
+];
 
 export default function Home() {
   const { data: session, status } = useSession();
