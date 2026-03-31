@@ -3,7 +3,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 
 export const metadata = {
-  title: "WeatherME | Simple Weather Search",
+  title: "WeatherMEE | Simple Weather Search",
   description: "A simple react and redux weather application",
 };
 

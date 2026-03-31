@@ -40,7 +40,7 @@ export default function LoginPage() {
             colors="primary:#18f2b2,secondary:#1e293b" 
             style={{ width: '50px', height: '50px' }}>
           </lord-icon>
-          WeatherME
+          WeatherMEE
         </h1>
         <p className="mb-2" style={{ color: 'var(--text-secondary)' }}>Sign in to check the weather</p>
         

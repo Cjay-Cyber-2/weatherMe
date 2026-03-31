@@ -38,7 +38,7 @@ export default function HistoryPage() {
             colors="primary:#18f2b2,secondary:#1e293b" 
             style={{ width: '45px', height: '45px', marginRight: '8px' }}>
           </lord-icon>
-          WeatherME
+          WeatherMEE
         </Link>
         <div className="nav-links">
           <span>Welcome, <b>{session.user?.name || "User"}</b></span>
