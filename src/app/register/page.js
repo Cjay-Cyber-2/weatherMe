@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import CloudIcon from "@/components/CloudIcon";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -12,8 +13,22 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+  const { status } = useSession();
   const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [router, status]);
+
+  if (status === "loading") {
+    return <div className="container text-center mt-2">Loading session...</div>;
+  }
+
+  if (status === "authenticated") {
+    return null;
+  }
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -28,12 +43,13 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      const trimmedUsername = username.trim();
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username: trimmedUsername, password }),
       });
 
       const data = await res.json();
@@ -43,23 +59,21 @@ export default function RegisterPage() {
       }
 
       setSuccess(true);
-      
-      // Automatically log the user in using NextAuth credentials
+
       const signInRes = await signIn("credentials", {
-        username,
+        username: trimmedUsername,
         password,
         redirect: false,
       });
 
-      // Wait a moment so the user sees the success state, then redirect to Dashboard
       setTimeout(() => {
         if (!signInRes?.error) {
-          router.push("/");
+          router.replace("/");
+          router.refresh();
         } else {
-          router.push("/login");
+          router.replace("/login");
         }
       }, 1000);
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -68,23 +82,70 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
-      <div className="card" style={{ maxWidth: '400px', width: '100%', textAlign: 'center' }}>
-        <h1 className="logo-font" style={{ color: 'var(--primary-color)', fontSize: '2.5rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-          <lord-icon 
-            src="https://cdn.lordicon.com/bhenydna.json" 
-            trigger="hover" 
-            colors="primary:#18f2b2,secondary:#1e293b" 
-            style={{ width: '50px', height: '50px' }}>
-          </lord-icon>
+    <div
+      className="container"
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "80vh",
+      }}
+    >
+      <div
+        className="card"
+        style={{ maxWidth: "400px", width: "100%", textAlign: "center" }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
+          <CloudIcon size={88} alt="WeatherMEE animated cloud" priority />
+        </div>
+        <h1
+          className="logo-font"
+          style={{
+            color: "var(--primary-color)",
+            fontSize: "2.5rem",
+            marginBottom: "0.5rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "10px",
+          }}
+        >
           WeatherMEE
         </h1>
-        <p className="mb-2" style={{ color: 'var(--text-secondary)' }}>Create your free account</p>
-        
-        {error && <div style={{ color: '#7f1d1d', backgroundColor: '#fca5a5', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>{error}</div>}
-        {success && <div style={{ color: '#14532d', backgroundColor: '#bbf7d0', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>Registration successful! Redirecting to dashboard...</div>}
-        
-        <form onSubmit={handleRegister} style={{ textAlign: 'left' }}>
+        <p className="mb-2" style={{ color: "var(--text-secondary)" }}>
+          Create your free account
+        </p>
+
+        {error && (
+          <div
+            style={{
+              color: "#7f1d1d",
+              backgroundColor: "#fca5a5",
+              padding: "0.8rem",
+              borderRadius: "8px",
+              marginBottom: "1rem",
+              fontWeight: "500",
+            }}
+          >
+            {error}
+          </div>
+        )}
+        {success && (
+          <div
+            style={{
+              color: "#14532d",
+              backgroundColor: "#bbf7d0",
+              padding: "0.8rem",
+              borderRadius: "8px",
+              marginBottom: "1rem",
+              fontWeight: "500",
+            }}
+          >
+            Registration successful! Redirecting to dashboard...
+          </div>
+        )}
+
+        <form onSubmit={handleRegister} style={{ textAlign: "left" }}>
           <div className="form-group">
             <label>Username</label>
             <input
@@ -118,14 +179,22 @@ export default function RegisterPage() {
               required
             />
           </div>
-          <button type="submit" className="btn" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
+          <button
+            type="submit"
+            className="btn"
+            style={{ width: "100%", marginTop: "1rem" }}
+            disabled={loading}
+          >
             {loading ? "Creating..." : "Create Account"}
           </button>
         </form>
 
-        <p style={{ marginTop: '1.5rem', color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-          Already have an account?{' '}
-          <Link href="/login" style={{ color: 'var(--primary-color)', fontWeight: '600', textDecoration: 'none' }}>
+        <p style={{ marginTop: "1.5rem", color: "var(--text-secondary)", fontSize: "0.9rem" }}>
+          {"Already have an account? "}
+          <Link
+            href="/login"
+            style={{ color: "var(--primary-color)", fontWeight: "600", textDecoration: "none" }}
+          >
             Log in here.
           </Link>
         </p>

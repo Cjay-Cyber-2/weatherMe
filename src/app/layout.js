@@ -1,4 +1,3 @@
-import Script from "next/script";
 import "./globals.css";
 import Providers from "@/components/Providers";
 
@@ -11,10 +10,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="text-font">
-        <Script src="https://cdn.lordicon.com/lordicon.js" />
-        <Providers>
-          {children}
-        </Providers>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

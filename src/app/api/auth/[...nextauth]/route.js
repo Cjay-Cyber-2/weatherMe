@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { findUserByUsername } from "@/lib/authStore";
 
 const authOptions = {
   providers: [
@@ -7,36 +8,60 @@ const authOptions = {
       name: "Credentials",
       credentials: {
         username: { label: "Username", type: "text", placeholder: "user" },
-        password: { label: "Password", type: "password" }
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        // Initialize mock DB if it doesn't exist yet on first boot
-        if (!global.mockUsersDB) {
-          global.mockUsersDB = [{ username: "user", password: "password" }];
+        const username = credentials?.username?.trim();
+        const password = credentials?.password ?? "";
+
+        if (!username || !password) {
+          return null;
         }
 
-        // Validate credentials against our in-memory "database"
-        const existingUser = global.mockUsersDB.find(
-          (u) => u.username.toLowerCase() === credentials.username.toLowerCase() && u.password === credentials.password
-        );
+        const existingUser = await findUserByUsername(username);
 
-        if (existingUser) {
-          return { id: Math.random().toString(), name: existingUser.username };
+        if (!existingUser || existingUser.password !== password) {
+          return null;
         }
-        
-        // If it doesn't match an actual registered user, reject login
-        return null; 
-      }
-    })
+
+        return {
+          id: username.toLowerCase(),
+          name: existingUser.username,
+        };
+      },
+    }),
   ],
   pages: {
-    signIn: '/login', // Set the custom login page
+    signIn: "/login",
   },
   session: {
-    strategy: "jwt", // Use JWT since we don't have a database
+    strategy: "jwt",
+    maxAge: 60 * 60 * 12,
   },
-  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-learning-purposes-only",
+  jwt: {
+    maxAge: 60 * 60 * 12,
+  },
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user?.name) {
+        token.name = user.name;
+      }
+
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user && token.name) {
+        session.user.name = token.name;
+      }
+
+      return session;
+    },
+  },
+  secret:
+    process.env.NEXTAUTH_SECRET || "fallback-secret-for-learning-purposes-only",
 };
+
+export { authOptions };
 
 const handler = NextAuth(authOptions);
 
