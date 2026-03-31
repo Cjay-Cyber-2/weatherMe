@@ -1,44 +1,77 @@
-import { promises as fs } from "fs";
-import path from "path";
-
-const DATA_DIRECTORY = path.join(process.cwd(), "data");
-const USERS_FILE = path.join(DATA_DIRECTORY, "users.json");
+const USERS_COOKIE = "weatherme_users";
+const USERS_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 const DEFAULT_USERS = [{ username: "admin", password: "password" }];
 
 function normalizeUsername(username = "") {
   return username.trim().toLowerCase();
 }
 
-async function writeUsers(users) {
-  await fs.mkdir(DATA_DIRECTORY, { recursive: true });
-  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
+function parseCookieHeader(cookieHeader = "") {
+  return cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .reduce((cookies, part) => {
+      const separatorIndex = part.indexOf("=");
+
+      if (separatorIndex === -1) {
+        return cookies;
+      }
+
+      const key = part.slice(0, separatorIndex);
+      const value = part.slice(separatorIndex + 1);
+      cookies[key] = value;
+      return cookies;
+    }, {});
 }
 
-export async function getUsers() {
+function encodeUsers(users) {
+  return Buffer.from(JSON.stringify(users), "utf8").toString("base64url");
+}
+
+function decodeUsers(value) {
+  if (!value) {
+    return null;
+  }
+
   try {
-    await fs.mkdir(DATA_DIRECTORY, { recursive: true });
-    const rawUsers = await fs.readFile(USERS_FILE, "utf8");
-    const parsedUsers = JSON.parse(rawUsers);
+    const parsedUsers = JSON.parse(
+      Buffer.from(value, "base64url").toString("utf8")
+    );
 
     if (Array.isArray(parsedUsers)) {
       return parsedUsers;
     }
   } catch {
-    // Fall back to the default local user store the first time the app runs.
+    return null;
   }
 
-  await writeUsers(DEFAULT_USERS);
-  return DEFAULT_USERS;
+  return null;
 }
 
-export async function findUserByUsername(username) {
+function getCookieHeader(request) {
+  if (!request?.headers) {
+    return "";
+  }
+
+  if (typeof request.headers.get === "function") {
+    return request.headers.get("cookie") ?? "";
+  }
+
+  return request.headers.cookie ?? "";
+}
+
+export function getUsersFromCookieHeader(cookieHeader = "") {
+  const cookies = parseCookieHeader(cookieHeader);
+  return decodeUsers(cookies[USERS_COOKIE]) || DEFAULT_USERS;
+}
+
+export function findUserByUsername(users, username) {
   const normalizedUsername = normalizeUsername(username);
 
   if (!normalizedUsername) {
     return null;
   }
-
-  const users = await getUsers();
 
   return (
     users.find(
@@ -47,33 +80,46 @@ export async function findUserByUsername(username) {
   );
 }
 
-export async function createUser({ username, password }) {
+export function registerUser(users, { username, password }) {
   const trimmedUsername = username?.trim();
 
   if (!trimmedUsername || !password) {
     throw new Error("Username and password are required");
   }
 
-  const users = await getUsers();
-  const existingUser = users.find(
-    (user) =>
-      normalizeUsername(user.username) === normalizeUsername(trimmedUsername)
-  );
-
-  if (existingUser) {
-    return { created: false };
+  if (findUserByUsername(users, trimmedUsername)) {
+    return { created: false, users };
   }
 
-  const newUser = {
-    username: trimmedUsername,
-    password,
-  };
-
-  users.push(newUser);
-  await writeUsers(users);
+  const nextUsers = [
+    ...users,
+    {
+      username: trimmedUsername,
+      password,
+    },
+  ];
 
   return {
     created: true,
+    users: nextUsers,
     user: { username: trimmedUsername },
   };
+}
+
+export function buildUsersCookieValue(users) {
+  return encodeUsers(users);
+}
+
+export function getUsersCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: USERS_COOKIE_MAX_AGE,
+  };
+}
+
+export function getUsersFromRequest(request) {
+  return getUsersFromCookieHeader(getCookieHeader(request));
 }

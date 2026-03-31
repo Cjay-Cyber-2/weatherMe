@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { findUserByUsername } from "@/lib/authStore";
+import { findUserByUsername, getUsersFromRequest } from "@/lib/authStore";
 
 const authOptions = {
   providers: [
@@ -10,7 +10,7 @@ const authOptions = {
         username: { label: "Username", type: "text", placeholder: "user" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const username = credentials?.username?.trim();
         const password = credentials?.password ?? "";
 
@@ -18,7 +18,8 @@ const authOptions = {
           return null;
         }
 
-        const existingUser = await findUserByUsername(username);
+        const users = getUsersFromRequest(request);
+        const existingUser = findUserByUsername(users, username);
 
         if (!existingUser || existingUser.password !== password) {
           return null;

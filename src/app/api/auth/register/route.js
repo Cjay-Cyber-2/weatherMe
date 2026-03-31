@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { createUser } from "@/lib/authStore";
+import {
+  buildUsersCookieValue,
+  getUsersCookieOptions,
+  getUsersFromRequest,
+  registerUser,
+} from "@/lib/authStore";
 
 export async function POST(request) {
   try {
@@ -12,7 +17,10 @@ export async function POST(request) {
       );
     }
 
-    const result = await createUser({ username, password });
+    const result = registerUser(getUsersFromRequest(request), {
+      username,
+      password,
+    });
 
     if (!result.created) {
       return NextResponse.json(
@@ -21,10 +29,18 @@ export async function POST(request) {
       );
     }
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: "Account created successfully!", user: result.user },
       { status: 201 }
     );
+
+    response.cookies.set(
+      "weatherme_users",
+      buildUsersCookieValue(result.users),
+      getUsersCookieOptions()
+    );
+
+    return response;
   } catch {
     return NextResponse.json(
       { message: "An error occurred during registration." },
