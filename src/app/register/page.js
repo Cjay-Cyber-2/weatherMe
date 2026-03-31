@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -42,10 +43,22 @@ export default function RegisterPage() {
       }
 
       setSuccess(true);
-      // Wait for 1.5 seconds so user reads success message, then navigate to login
+      
+      // Automatically log the user in using NextAuth credentials
+      const signInRes = await signIn("credentials", {
+        username,
+        password,
+        redirect: false,
+      });
+
+      // Wait a moment so the user sees the success state, then redirect to Dashboard
       setTimeout(() => {
-        router.push("/login");
-      }, 1500);
+        if (!signInRes?.error) {
+          router.push("/");
+        } else {
+          router.push("/login");
+        }
+      }, 1000);
 
     } catch (err) {
       setError(err.message);
@@ -69,7 +82,7 @@ export default function RegisterPage() {
         <p className="mb-2" style={{ color: 'var(--text-secondary)' }}>Create your free account</p>
         
         {error && <div style={{ color: '#7f1d1d', backgroundColor: '#fca5a5', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>{error}</div>}
-        {success && <div style={{ color: '#14532d', backgroundColor: '#bbf7d0', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>Registration successful! Redirecting to login...</div>}
+        {success && <div style={{ color: '#14532d', backgroundColor: '#bbf7d0', padding: '0.8rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: '500' }}>Registration successful! Redirecting to dashboard...</div>}
         
         <form onSubmit={handleRegister} style={{ textAlign: 'left' }}>
           <div className="form-group">
@@ -77,7 +90,6 @@ export default function RegisterPage() {
             <input
               type="text"
               className="form-control"
-              placeholder="e.g. cloudwatcher123"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required

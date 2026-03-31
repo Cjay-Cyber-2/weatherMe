@@ -52,7 +52,6 @@ export default function LoginPage() {
             <input
               type="text"
               className="form-control"
-              placeholder="e.g. admin"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
