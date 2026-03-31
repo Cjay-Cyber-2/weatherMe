@@ -7,11 +7,9 @@ import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import CloudIcon from "@/components/CloudIcon";
 import TrashIcon from "@/components/TrashIcon";
-import { WEATHER_STORAGE_KEY } from "@/store";
 import {
   clearHistory,
   removeHistoryItem,
-  resetWeatherState,
 } from "@/store/weatherSlice";
 
 export default function HistoryPage() {
@@ -39,8 +37,6 @@ export default function HistoryPage() {
   };
 
   const handleLogout = () => {
-    dispatch(resetWeatherState());
-    window.localStorage.removeItem(WEATHER_STORAGE_KEY);
     signOut({ callbackUrl: "/login" });
   };
 
@@ -75,12 +71,8 @@ export default function HistoryPage() {
               style={{
                 color: "var(--primary-color)",
                 margin: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
               }}
             >
-              <CloudIcon size={56} alt="Animated cloud history icon" />
               Search History
             </h2>
             <button
@@ -113,7 +105,6 @@ export default function HistoryPage() {
                     <tr key={item.id || `${item.name}-${item.timestamp}-${index}`}>
                       <td style={{ fontWeight: "500" }}>
                         <div className="history-location">
-                          <CloudIcon size={28} alt={`${item.name} animated cloud`} className="history-cloud" />
                           <span>{item.name}</span>
                           <button
                             type="button"
@@ -145,9 +136,6 @@ export default function HistoryPage() {
                 marginTop: "1rem",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: "1rem" }}>
-                <CloudIcon size={80} alt="Animated cloud empty state" />
-              </div>
               <p style={{ color: "var(--text-secondary)" }}>
                 You have not searched for any weather yet.
               </p>

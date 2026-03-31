@@ -7,11 +7,9 @@ import Link from "next/link";
 import { useDispatch, useSelector } from "react-redux";
 import CloudIcon from "@/components/CloudIcon";
 import { LOCATION_OPTIONS } from "@/lib/locationOptions";
-import { WEATHER_STORAGE_KEY } from "@/store";
 import {
   fetchWeather,
   clearError,
-  resetWeatherState,
 } from "@/store/weatherSlice";
 
 export default function Home() {
@@ -40,8 +38,6 @@ export default function Home() {
   };
 
   const handleLogout = () => {
-    dispatch(resetWeatherState());
-    window.localStorage.removeItem(WEATHER_STORAGE_KEY);
     signOut({ callbackUrl: "/login" });
   };
 

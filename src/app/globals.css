@@ -89,10 +89,6 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 0.75rem;
 }
 
-.result-icon {
-  transform: scale(1.05);
-}
-
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -245,10 +241,6 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-}
-
-.history-cloud {
-  flex-shrink: 0;
 }
 
 .icon-button {

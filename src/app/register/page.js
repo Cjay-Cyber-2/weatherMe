@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
-import CloudIcon from "@/components/CloudIcon";
 
 export default function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -95,9 +94,6 @@ export default function RegisterPage() {
         className="card"
         style={{ maxWidth: "400px", width: "100%", textAlign: "center" }}
       >
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: "0.75rem" }}>
-          <CloudIcon size={88} alt="WeatherMEE animated cloud" priority />
-        </div>
         <h1
           className="logo-font"
           style={{
